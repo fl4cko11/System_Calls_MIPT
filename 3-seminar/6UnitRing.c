@@ -17,21 +17,23 @@ volatile int if_need_to_add = 0;
 volatile int if_end = 1;
 
 
-void sigusr1_handler (int sig) {
+void write_id_handler (int sig) {
     if_need_to_write_id = 1;
 }
-void sigusr2_handler (int sig) {
+void start_addinf_handler (int sig) {
     if_need_to_add = 1;
 }
 void sigint_handler (int sig) {
     if_end = 0;
 }
-
+void stop_adding_handler (int sig) {
+    if_need_to_add = 0;
+}
 
 int main() {
+    signal(SIGUSR1, write_id_handler);
+    signal(SIGUSR2, start_addinf_handler);
     signal(SIGINT, sigint_handler);
-    signal(SIGUSR1, sigusr1_handler);
-    signal(SIGUSR2, sigusr2_handler);
 
     // в каждом терминале подключаемся к одной shm
     int shm_key;
@@ -69,11 +71,13 @@ int main() {
         }
 
         // Прибавление к числу 1 и вывод его в консоль
-        if (if_need_to_add == 1) {
+        while (if_need_to_add == 1) {
+            signal(SIGHUP, stop_adding_handler);
             mem[0] ++;
             printf("from pid: %d, after added: %d\n", pid, mem[0]);
-            if_need_to_add = 0;
+            sleep(1);
         }
+        sleep(0.5);
     }
     mem[index_self_id] = 0; //изменяем id после выхода
 }
