@@ -69,7 +69,8 @@ int main() {
     if (pid < 0) {
         perror("Ошибка при fork");
         exit(1);
-    } else if (pid == 0) {
+    } 
+    else if (pid == 0) {
         // Дочерний процесс
         signal(SIGINT, handle_exit);  // Обработка сигнала прерывания (из основного прилетает при exit) и while в read заканчивается
         read_messages();
